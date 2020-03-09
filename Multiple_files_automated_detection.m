@@ -4,6 +4,15 @@
 % Affiliation : CRAN UMR7039 CNRS Université de Lorraine
 % Département : Biologie, Signaux et Systèmes en Cancérologie et Neurosciences
 % Projet : Neuroscience des systèmes et de la cognition
+%% Add paths
+cvxFolder =    '';
+biosigFOlder = '';
+functionsPackageFolder = '';
+addpath('./MAIN_fun_standalone');
+addppath(cvxFolder);
+addpath(biosigFOlder);
+addpath(functionsPackageFolder);
+
 %% File opening
 analysis_path = uigetdir();
 

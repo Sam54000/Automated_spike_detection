@@ -12,6 +12,14 @@
         % rate and the spatial distribution of the spikes' amplitudes.
         %
 clear all; close all; clc;
+%% Add paths
+cvxFolder =    '';
+biosigFOlder = '';
+functionsPackageFolder = '';
+addpath('./MAIN_fun_standalone');
+addppath(cvxFolder);
+addpath(biosigFOlder);
+addpath(functionsPackageFolder);
 %% Question TRC or Matfile and choose sampling frequency
 answer = questdlg('SEEG file type', ...
 	'SEEG data filetype', ...
