@@ -13,12 +13,12 @@
         %
 clear all; close all; clc;
 %% Add paths
-cvxFolder =    '';
-biosigFOlder = '';
-functionsPackageFolder = '';
+%cvxFolder =    '';
+biosigFolder = '/Volumes/Storage/Programs/Biosig';
+functionsPackageFolder = '/Volumes/Storage/Programs/fun';
 addpath('./MAIN_fun_standalone');
-addppath(cvxFolder);
-addpath(biosigFOlder);
+%addppath(cvxFolder);
+addpath(biosigFolder);
 addpath(functionsPackageFolder);
 %% Question TRC or Matfile and choose sampling frequency
 answer = questdlg('SEEG file type', ...
@@ -51,8 +51,8 @@ end
 
 %% loading a patient micromed trc-file
 if filetype == 2
-    [file,path] = uigetfile('*.trc');
-    [sig,output]  = icem_read_micromed_trc([path '\' file], 0, 1);
+    [file,path] = uigetfile('.trc');
+    [sig,output]  = icem_read_micromed_trc([path file], 0, 1);
     [signal,labels] = searchAndDestroy_bad_elec(sig{1,1},output.Names);
     data.fs = output.SR;
     data.d = transpose(signal);

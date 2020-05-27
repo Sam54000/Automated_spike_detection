@@ -93,7 +93,7 @@ for i=1:size(clustering.qIED,1)
     tab(2+i,:)=[{['cluster #' num2str(i)]},num2cell(clustering.qIED(i,:)/duration)];    
 end
 
-saveas(gcf,[saving_folder '\IED_' tdcsState], 'fig');
+saveas(gcf,[saving_folder '\IED_' tdcsState], '.fig');
 close figure 2
 
 % Clustering
@@ -110,7 +110,7 @@ for i=1:length(cidx)
     title(['Cluster #' num2str(i) ' - ' num2str(clustering.evt_percent(i),'%.01f') '%'])
 end
 
-saveas(gcf,[saving_folder 'Clusters' tdcsState], 'fig');
+saveas(gcf,[saving_folder 'Clusters' tdcsState], '.fig');
 close figure 3
 end
 %writetable(cell2table(tab),'results.csv','Delimiter',';','WriteVariableNames',0)
