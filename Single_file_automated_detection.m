@@ -45,11 +45,14 @@ for n = 1:nb_files(1,2)
     output.End(sep_dot(1,2)) = replace(output.End(sep_dot(1,2)),':','m');
     data_name = [Pat_lastname{1:1}(1:3) '_' Pat_firstname{1:1}(1:2) '_' date '_' output.Start(1:end) '_' output.End(1:end-4)]; %name of the file which will be renamed
     saving_folder = Directory(Selection(1,n)).folder; %path of the new folder created before
-          
-    movefile(fullfile(Directory(Selection(1,n)).folder,Directory(Selection(1,n)).name),... %moving and renaming the SEEG recording file
-             fullfile(Directory(Selection(1,n)).folder,...
-             [Pat_lastname{1:1}(1:3) '_' Pat_firstname{1:1}(1:2) '_' date '_' output.Start(1:end)...
-              '_' output.End(1:end-4) '.TRC'])); 
+    
+    Test_Renamed_File = strcmp(Directory(Selection(1,n)).name,[data_name '.TRC']);
+    if Test_Renamed_File == 0
+        movefile(fullfile(Directory(Selection(1,n)).folder,Directory(Selection(1,n)).name),... %moving and renaming the SEEG recording file
+                fullfile(Directory(Selection(1,n)).folder,...
+                [Pat_lastname{1:1}(1:3) '_' Pat_firstname{1:1}(1:2) '_' date '_' output.Start(1:end)...
+                '_' output.End(1:end-4) '.TRC']));
+    end
  %% Data organization
           
    [signal,labels] = searchAndDestroy_bad_elec(sig{1,1},output.Names); %function which search and remove the channel MKR, SPO2, BEAT, ECG etc...
