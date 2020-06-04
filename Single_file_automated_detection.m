@@ -10,69 +10,74 @@ close all
 
 biosigFolder = '/Volumes/Storage/Programs/Biosig'; %Path where you downloaded biosig
 functionsPackageFolder = '/Volumes/Storage/Programs/fun'; %Path where you downloaded Function Package
-addpath('./MAIN_fun_standalone');
+
+addpath(fullfile(pwd,'nextname'));
 addpath(biosigFolder);
 addpath(functionsPackageFolder);
 
 %% File opening
-
 %[coord_elec_file,coord_elec_folder] = uigetfile('*xls', 'choose the coordinates Excel file');
-analysis_path = uigetdir();
 
-Directory = dir(analysis_path);
-file_names = {Directory.name};
-[Selection, OK] = listdlg('PromptString','Select files to analyse',...
-                          'SelectionMode', 'multiple', ...
-                           'ListString', file_names);
-[nb_files] = size(Selection);
-for n = 1:nb_files(1,2)
+ButtonName = questdlg('splitted files?', ...
+                         'Qestion', ...
+                         'Yes', 'No', 'No');
+switch ButtonName
+ case 'Yes'
+  merging;
+ case 'No'
+   
+    analysis_path = uigetdir();
+
+    Directory = dir(analysis_path);
+    file_names = {Directory.name};
+    [Selection, OK] = listdlg('PromptString','Select files to analyse',...
+                      'SelectionMode', 'multiple', ...
+                       'ListString', file_names);
+    [nb_files] = size(Selection);
+    for n = 1:nb_files(1,2)
     %% file preparation and sorting
-    [sig,output] = icem_read_micromed_trc(fullfile(Directory(Selection(1,n)).folder,Directory(Selection(1,n)).name) , 0, 1); %TRC file opening
-    Pat_Name = split(output.Name, " "); %find space character in order to separate patient's name and last name
-    Pat_lastname = Pat_Name(1,1);
-    Pat_firstname = Pat_Name(2,1);
-    %Pat_folder = [Pat_lastname(1:3) '_' Pat_firstname(1:2) ' IED_analysis']; %name of the folder where the renamed data and the results will be saved
-    %if not(exist(Pat_folder)) %if the patient's folder doesn't exist
-    %    mkdir([analysis_path '\' Pat_folder]); %create the folder
-    %end
-    date = replace(output.Date,'/', '_'); %date of the recording
-    sep_dot = findstr(output.Start,':'); %find the ":" in order to have a writable filename with start time recording
-    output.Start(sep_dot(1,1)) = replace(output.Start(sep_dot(1,1)),':','h'); %replace the first ":" by h (hour)
-    output.Start(sep_dot(1,2)) = replace(output.Start(sep_dot(1,2)),':','m'); %replace the second ":" by m (minutes)
-    clear sep_dot 
-    sep_dot = findstr(output.End,':'); %find the ":" in order to replace it in order to have a writable filename with end time recording
-    output.End(sep_dot(1,1)) = replace(output.End(sep_dot(1,1)),':','h');
-    output.End(sep_dot(1,2)) = replace(output.End(sep_dot(1,2)),':','m');
-    data_name = [Pat_lastname{1:1}(1:3) '_' Pat_firstname{1:1}(1:2) '_' date '_' output.Start(1:end) '_' output.End(1:end-4)]; %name of the file which will be renamed
-    saving_folder = Directory(Selection(1,n)).folder; %path of the new folder created before
-    
-    Test_Renamed_File = strcmp(Directory(Selection(1,n)).name,[data_name '.TRC']);
-    if Test_Renamed_File == 0
-        movefile(fullfile(Directory(Selection(1,n)).folder,Directory(Selection(1,n)).name),... %moving and renaming the SEEG recording file
-                fullfile(Directory(Selection(1,n)).folder,...
-                [Pat_lastname{1:1}(1:3) '_' Pat_firstname{1:1}(1:2) '_' date '_' output.Start(1:end)...
-                '_' output.End(1:end-4) '.TRC']));
-    end
- %% Data organization
-          
-   [signal,labels] = searchAndDestroy_bad_elec(sig{1,1},output.Names); %function which search and remove the channel MKR, SPO2, BEAT, ECG etc...
-    data.fs = output.SR; %Sampling frequency
-    data.d = transpose(signal); %Transposing the raw data in order to be readable for the spike detector
-    clearvars 'signal';
-    data.labels = labels;
-    clearvars 'labels';
-    sigsize = size(data.d);
-    data.tabs(1:sigsize(1,1),1) = 1/data.fs;
- %% spike detection
-    [d, DE, discharges, d_decim, envelope,...
-     background, envelope_pdf, clustering,...
-     labels_BIP, idx_spikes, qEEG(n,:)] = ...
-     MAIN_fun_standalone3(data,data_name,saving_folder);
-%% Statistics
-numSP = size(DE.chan); %number of detected spikes
-matSpike = discharges.MA(discharges.MV == 1); %Amplitudes of the spikes detected
-[nb_elec,~] = size(labels_BIP);
-    for m = 1:nb_elec
+        [sig,output] = icem_read_micromed_trc(fullfile(Directory(Selection(1,n)).folder,Directory(Selection(1,n)).name) , 0, 1); %TRC file opening
+        Pat_Name = split(output.Name, " "); %find space character in order to separate patient's name and last name
+        Pat_lastname = Pat_Name(1,1);
+        Pat_firstname = Pat_Name(2,1);
+        date = replace(output.Date,'/', '_'); %date of the recording
+        sep_dot = findstr(output.Start,':'); %find the ":" in order to have a writable filename with start time recording
+        output.Start(sep_dot(1,1)) = replace(output.Start(sep_dot(1,1)),':','h'); %replace the first ":" by h (hour)
+        output.Start(sep_dot(1,2)) = replace(output.Start(sep_dot(1,2)),':','m'); %replace the second ":" by m (minutes)
+        clear sep_dot 
+        sep_dot = findstr(output.End,':'); %find the ":" in order to replace it in order to have a writable filename with end time recording
+        output.End(sep_dot(1,1)) = replace(output.End(sep_dot(1,1)),':','h');
+        output.End(sep_dot(1,2)) = replace(output.End(sep_dot(1,2)),':','m');
+        data_name = [Pat_lastname{1:1}(1:3) '_' Pat_firstname{1:1}(1:2) '_' date '_' output.Start(1:end) '_' output.End(1:end-4)]; %name of the file which will be renamed
+        saving_folder = Directory(Selection(1,n)).folder; %path of the new folder created before
+        test_exist_file = exist([data_name '.TRC'],'file');
+        Test_Renamed_File = strcmp(Directory(Selection(1,n)).name,[data_name '.TRC']);
+        newFname = nextname(fullfile(saving_folder,data_name),'_1','.TRC');
+        if Test_Renamed_File == 0            
+            movefile(fullfile(Directory(Selection(1,n)).folder,Directory(Selection(1,n)).name),... %moving and renaming the SEEG recording file
+                    fullfile(Directory(Selection(1,n)).folder,...
+                    newFname));
+        end
+        %% Data organization
+
+        [signal,labels] = searchAndDestroy_bad_elec(sig{1,1},output.Names); %function which search and remove the channel MKR, SPO2, BEAT, ECG etc...
+        data.fs = output.SR; %Sampling frequency
+        data.d = transpose(signal); %Transposing the raw data in order to be readable for the spike detector
+        clearvars 'signal';
+        data.labels = labels;
+        clearvars 'labels';
+        sigsize = size(data.d);
+        data.tabs(1:sigsize(1,1),1) = 1/data.fs;
+        %% spike detection
+        [d, DE, discharges, d_decim, envelope,...
+        background, envelope_pdf, clustering,...
+        labels_BIP, idx_spikes, qEEG(n,:)] = ...
+        MAIN_fun_standalone3(data,data_name,saving_folder);
+        %% Statistics
+        numSP = size(DE.chan); %number of detected spikes
+        matSpike = discharges.MA(discharges.MV == 1); %Amplitudes of the spikes detected
+        [nb_elec,~] = size(labels_BIP);
+        for m = 1:nb_elec
         [index,~] = find(DE.chan == m);
         [sizeMat,~] = size(matSpike);
         if not(isempty(index))
@@ -89,22 +94,23 @@ matSpike = discharges.MA(discharges.MV == 1); %Amplitudes of the spikes detected
         else
             StatSP(m,:) = NaN;
         end
-        
-    end
 
-%     Long traitement
-    tic
-    PostT.Amplitude = AMP;
-    PostT.Amplitude_moyenne = StatSP(:,1);
-    PostT.Amplitude_std = StatSP(:,2);
-    PostT.Valeurs_max = StatSP(:,3);
-    PostT.Valeurs_min = StatSP(:,4);
-    PostT.Spike_occurence = qEEG;
-    PostT.Stat_evenement_individuel = DE;
-    PostT.Stat_evenement_multichannel = discharges;
-    PostT.number_of_spikes = numSP;
-    time = toc;
-    save(fullfile(saving_folder,['STATS_' data_name]));
+        end
+
+        %     Long traitement
+        tic
+        PostT.Amplitude = AMP;
+        PostT.Amplitude_moyenne = StatSP(:,1);
+        PostT.Amplitude_std = StatSP(:,2);
+        PostT.Valeurs_max = StatSP(:,3);
+        PostT.Valeurs_min = StatSP(:,4);
+        PostT.Spike_occurence = qEEG;
+        PostT.Stat_evenement_individuel = DE;
+        PostT.Stat_evenement_multichannel = discharges;
+        PostT.number_of_spikes = numSP;
+        time = toc;
+        save(fullfile(saving_folder,['STATS_' data_name]));
+    end
 end
 %% Intracerebral location (under development)
 % for m = 1:nb_elec
