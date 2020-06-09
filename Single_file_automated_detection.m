@@ -8,8 +8,8 @@
 clear all
 close all
 
-biosigFolder = '/Volumes/Storage/Programs/Biosig'; %Path where you downloaded biosig
-functionsPackageFolder = '/Volumes/Storage/Programs/fun'; %Path where you downloaded Function Package
+biosigFolder = ''; %Path where you downloaded biosig
+functionsPackageFolder = ''; %Path where you downloaded Function Package
 
 addpath(fullfile(pwd,'nextname'));
 addpath(biosigFolder);
@@ -73,41 +73,86 @@ switch ButtonName
         background, envelope_pdf, clustering,...
         labels_BIP, idx_spikes, qEEG(n,:)] = ...
         MAIN_fun_standalone3(data,data_name,saving_folder);
-        %% Statistics
-        numSP = size(DE.chan); %number of detected spikes
-        matSpike = discharges.MA(discharges.MV == 1); %Amplitudes of the spikes detected
-        [nb_elec,~] = size(labels_BIP);
-        for m = 1:nb_elec
-        [index,~] = find(DE.chan == m);
-        [sizeMat,~] = size(matSpike);
-        if not(isempty(index))
-            if index(end,1) > sizeMat
-                matSpike(index(end,1),1) = NaN;
+        %% Statistics1
+        pos = round(PostT.Stat_evenement_multichannel.MP*output.SR);
+        dur = 124;
+        
+        %Filtering
+        [x, FiltSpec, ~] = bst_bandpass_hfilter(...
+                    transpose(data.d),... %Data to filter
+                    output.SR,...              %Sampling frequency
+                    10,...           %High pass cut off frequency (0 for only low pass)
+                    200,...       %Low pass cut off frequency
+                    0,...               %Mirroring the data 0: No, 1: Yes
+                    0,...               %ripple and attenuation coefficients (0 no attenuation)
+                    'filter',...        %'filter', filtering in time domain
+                    3,...               %Width of the transition band in Hz
+                    'bst-hfilter-2019');%Method
+        x = notch_filter(x, 1024, [7 50 68 82]);
+        
+        % Supressing the maximum of false positive
+        f = waitbar(0,'Security Computation');
+        for j = 1:size(pos,2)
+            k = 0;
+            for i = 1:size(pos,1)
+                if ~isnan(pos(i,j))
+                    [~,idx] = max(x(j,pos(i,j)-10:pos(i,j)+50));
+                    dif = idx-10;
+                    pos2 = pos(i,j)+dif;
+                    win = [pos2-30,pos2+dur];
+                    testStd = std(x(j,win(1,1):win(1,2)));
+                    if x(j,pos2) > 2*testStd && x(j,pos2)>50
+                        mat(j,i,1:155) = x(j,win(1,1):win(1,2));
+                        Amplitudes(i,j) = max(x(j,win(1,1):win(1,2)));
+                        nb_spikes(j,1) = k;
+                        k = k+1;
+                    else
+                        mat(j,i,1:155) = NaN;
+                        Amplitudes(i,j) = NaN;
+                    end
+                else
+                    mat(j,i,1:155) = NaN;
+                    Amplitudes(i,j) = NaN;
+                end
             end
+            waitbar(j/size(pos,2),f);
+            close(f)
         end
-        AMP{m,1} = matSpike(DE.chan == m); %Amplitude for each channels for each spikes
-        if not(isempty(AMP{m,1}))
-            StatSP(m,1) = mean(AMP{m,1}); %mean of the spikes amplitudes for each channels
-            StatSP(m,2) = std(AMP{m,1});  %standard deviation of the amplitudes
-            StatSP(m,3) = max(AMP{m,1});  %maximum values on each channels
-            StatSP(m,4) = min(AMP{m,1});  %minimum values on each channels
-        else
-            StatSP(m,:) = NaN;
-        end
-
-        end
+%% Statistics 2
+        %numSP = size(DE.chan); %number of detected spikes
+        %matSpike = discharges.MA(discharges.MV == 1); %Amplitudes of the spikes detected
+%        [nb_elec,~] = size(labels_BIP);
+%         for m = 1:nb_elec
+%             [index,~] = find(DE.chan == m);
+%             [sizeMat,~] = size(matSpike);
+%             if not(isempty(index))
+%                 if index(end,1) > sizeMat
+%                     matSpike(index(end,1),1) = NaN;
+%                 end
+%             end
+%             AMP{m,1} = matSpike(DE.chan == m); %Amplitude for each channels for each spikes
+%             if not(isempty(AMP{m,1}))
+%                 StatSP(m,1) = mean(AMP{m,1}); %mean of the spikes amplitudes for each channels
+%                 StatSP(m,2) = std(AMP{m,1});  %standard deviation of the amplitudes
+%                 StatSP(m,3) = max(AMP{m,1});  %maximum values on each channels
+%                 StatSP(m,4) = min(AMP{m,1});  %minimum values on each channels
+%             else
+%                 StatSP(m,:) = NaN;
+%             end
+% 
+%         end
 
         %     Long traitement
         tic
-        PostT.Amplitude = AMP;
-        PostT.Amplitude_moyenne = StatSP(:,1);
-        PostT.Amplitude_std = StatSP(:,2);
-        PostT.Valeurs_max = StatSP(:,3);
-        PostT.Valeurs_min = StatSP(:,4);
+        PostT.Amplitude = Amplitudes;
+        PostT.Amplitude_moyenne = mean(Amplitude);
+        PostT.Amplitude_std = std(Amplitude);
+        PostT.Valeurs_max = max(Amplitude);
+        PostT.Valeurs_min = min(Amplitude);
         PostT.Spike_occurence = qEEG;
         PostT.Stat_evenement_individuel = DE;
         PostT.Stat_evenement_multichannel = discharges;
-        PostT.number_of_spikes = numSP;
+        PostT.number_of_spikes = nb_spikes;
         time = toc;
         save(fullfile(saving_folder,['STATS_' data_name]));
     end
