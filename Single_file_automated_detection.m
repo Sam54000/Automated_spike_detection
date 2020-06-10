@@ -145,16 +145,17 @@ switch ButtonName
         %     Long traitement
         tic
         PostT.Amplitude = Amplitudes;
-        PostT.Amplitude_moyenne = mean(Amplitude);
-        PostT.Amplitude_std = std(Amplitude);
-        PostT.Valeurs_max = max(Amplitude);
-        PostT.Valeurs_min = min(Amplitude);
+        PostT.Amplitude_moyenne = mean(Amplitudes);
+        PostT.Amplitude_std = std(Amplitudes);
+        PostT.Valeurs_max = max(Amplitudes);
+        PostT.Spike_Matrix = mat;
+        PostT.Valeurs_min = min(Amplitudes);
         PostT.Spike_occurence = qEEG;
         PostT.Stat_evenement_individuel = DE;
         PostT.Stat_evenement_multichannel = discharges;
         PostT.number_of_spikes = nb_spikes;
         time = toc;
-        save(fullfile(saving_folder,['STATS_' data_name]));
+        save(fullfile(saving_folder,['STATS_' data_name]),'PostT');
     end
 end
 %% Intracerebral location (under development)
