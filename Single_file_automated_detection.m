@@ -74,7 +74,7 @@ switch ButtonName
         labels_BIP, idx_spikes, qEEG(n,:)] = ...
         MAIN_fun_standalone3(data,data_name,saving_folder);
         %% Statistics1
-        pos = round(PostT.Stat_evenement_multichannel.MP*output.SR);
+        pos = round(discharges.MP*output.SR);
         dur = 124;
         
         %Filtering
