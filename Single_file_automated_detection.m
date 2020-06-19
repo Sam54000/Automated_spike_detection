@@ -144,6 +144,7 @@ switch ButtonName
 
         %     Long traitement
         tic
+        PostT.Label_Bipolar = Labels_BIP;
         PostT.Amplitude = Amplitudes;
         PostT.Amplitude_moyenne = mean(Amplitudes);
         PostT.Amplitude_std = std(Amplitudes);
