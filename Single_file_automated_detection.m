@@ -91,7 +91,6 @@ switch ButtonName
         x = notch_filter(x, 1024, [7 50 68 82]);
         
         % Supressing the maximum of false positive
-        f = waitbar(0,'Security Computation');
         for j = 1:size(pos,2)
             k = 0;
             for i = 1:size(pos,1)
@@ -115,8 +114,6 @@ switch ButtonName
                     Amplitudes(i,j) = NaN;
                 end
             end
-            waitbar(j/size(pos,2),f);
-            close(f)
         end
 %% Statistics 2
         %numSP = size(DE.chan); %number of detected spikes
@@ -156,7 +153,7 @@ switch ButtonName
         PostT.Stat_evenement_multichannel = discharges;
         PostT.number_of_spikes = nb_spikes;
         time = toc;
-        save(fullfile(saving_folder,['STATS_' data_name]),'PostT');
+        save(fullfile(saving_folder,['STATS_' newFname]));
     end
 end
 %% Intracerebral location (under development)
