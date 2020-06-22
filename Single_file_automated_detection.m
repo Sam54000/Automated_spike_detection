@@ -142,8 +142,8 @@ switch ButtonName
         %     Long traitement
         tic
         PostT.Amplitude = Amplitudes;
-        PostT.Amplitude_moyenne = mean(Amplitudes);
-        PostT.Amplitude_std = std(Amplitudes);
+        PostT.Amplitude_moyenne = mean(Amplitudes,'omitnan');
+        PostT.Amplitude_std = std(Amplitudes,'omitnan');
         PostT.Valeurs_max = max(Amplitudes);
         PostT.Spike_Matrix = mat;
         PostT.Valeurs_min = min(Amplitudes);
