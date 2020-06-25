@@ -74,7 +74,6 @@ switch ButtonName
         [x, FiltSpec, ~] = bst_bandpass_hfilter(...
                     transpose(data.d),... %Data to filter
                     output.SR,...              %Sampling frequency
-                    %% 
                     10,...           %High pass cut off frequency (0 for only low pass)
                     200,...       %Low pass cut off frequency
                     0,...               %Mirroring the data 0: No, 1: Yes
@@ -147,6 +146,9 @@ switch ButtonName
         %     Long traitement
         
         PostT.Label_Bipolar = labels_BIP;
+        PostT.Start = output.Start;
+        PostT.End = output.End;
+        PostT.date = date;
         PostT.Amplitude = Amplitudes;
         PostT.Amplitude_moyenne = mean(Amplitudes,'omitnan');
         PostT.Amplitude_std = std(Amplitudes,'omitnan');
@@ -158,7 +160,8 @@ switch ButtonName
         PostT.Stat_evenement_multichannel = discharges;
         PostT.number_of_spikes = nb_spikes;
         time = toc;
-        save(fullfile(saving_folder,['STATS_' newFname]),'PostT');
+        newStatsname = nextname(fullfile(saving_folder,data_name),'_1','.mat');
+        save(fullfile(saving_folder,['STATS_' newStatsname]),'PostT');
     end
 end
 %% Intracerebral location (under development)
