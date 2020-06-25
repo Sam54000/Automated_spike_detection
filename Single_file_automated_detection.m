@@ -8,8 +8,8 @@
 clear all
 close all
 
-biosigFolder = ''; %Path where you downloaded biosig
-functionsPackageFolder = ''; %Path where you downloaded Function Package
+biosigFolder = '/Users/macbook/Desktop/ProgrammesSEEG/Biosig-master'; %Path where you downloaded biosig
+functionsPackageFolder = '/Users/macbook/Desktop/ProgrammesSEEG/Function-package-master'; %Path where you downloaded Function Package
 
 addpath(fullfile(pwd,'nextname'));
 addpath(biosigFolder);
@@ -68,19 +68,13 @@ switch ButtonName
         clearvars 'labels';
         sigsize = size(data.d);
         data.tabs(1:sigsize(1,1),1) = 1/data.fs;
-        %% spike detection
-        [d, DE, discharges, d_decim, envelope,...
-        background, envelope_pdf, clustering,...
-        labels_BIP, idx_spikes, qEEG(n,:)] = ...
-        MAIN_fun_standalone3(data,data_name,saving_folder);
         %% Statistics1
-        pos = round(discharges.MP*output.SR);
-        dur = 124;
         
         %Filtering
         [x, FiltSpec, ~] = bst_bandpass_hfilter(...
                     transpose(data.d),... %Data to filter
                     output.SR,...              %Sampling frequency
+                    %% 
                     10,...           %High pass cut off frequency (0 for only low pass)
                     200,...       %Low pass cut off frequency
                     0,...               %Mirroring the data 0: No, 1: Yes
@@ -89,8 +83,17 @@ switch ButtonName
                     3,...               %Width of the transition band in Hz
                     'bst-hfilter-2019');%Method
         x = notch_filter(x, 1024, [7 50 68 82]);
-        
-        % Supressing the maximum of false positive
+        %% Preparing
+        data.d = x.';
+        %% spike detection
+        [d, DE, discharges, d_decim, envelope,...
+        background, envelope_pdf, clustering,...
+        labels_BIP, idx_spikes, qEEG(n,:)] = ...
+        MAIN_fun_standalone3(data,data_name,saving_folder);        
+
+        %% Minimizing false positive detection
+        pos = round(discharges.MP*output.SR);
+        dur = 124;
         for j = 1:size(pos,2)
             k = 0;
             for i = 1:size(pos,1)
@@ -100,9 +103,9 @@ switch ButtonName
                     pos2 = pos(i,j)+dif;
                     win = [pos2-30,pos2+dur];
                     testStd = std(x(j,win(1,1):win(1,2)));
-                    if x(j,pos2) > 2*testStd && x(j,pos2)>50
+                    if x(j,pos2) > 2*testStd && x(j,pos2)>50 % Si x est supérieur à 2x la std & si x est > à 50 alors
                         mat(j,i,1:155) = x(j,win(1,1):win(1,2));
-                        Amplitudes(i,j) = max(x(j,win(1,1):win(1,2)));
+                        Amplitudes(i,j) = max(mat(j,i,1:155));
                         nb_spikes(j,1) = k;
                         k = k+1;
                     else
@@ -114,10 +117,12 @@ switch ButtonName
                     Amplitudes(i,j) = NaN;
                 end
             end
+            %waitbar(j/size(pos,2),f);
+            %close(f)
         end
 %% Statistics 2
-        %numSP = size(DE.chan); %number of detected spikes
-        %matSpike = discharges.MA(discharges.MV == 1); %Amplitudes of the spikes detected
+%         numSP = size(DE.chan); %number of detected spikes
+%         matSpike = discharges.MA(discharges.MV == 1); %Amplitudes of the spikes detected
 %        [nb_elec,~] = size(labels_BIP);
 %         for m = 1:nb_elec
 %             [index,~] = find(DE.chan == m);
@@ -140,8 +145,8 @@ switch ButtonName
 %         end
 
         %     Long traitement
-        tic
-        PostT.Label_Bipolar = Labels_BIP;
+        
+        PostT.Label_Bipolar = labels_BIP;
         PostT.Amplitude = Amplitudes;
         PostT.Amplitude_moyenne = mean(Amplitudes,'omitnan');
         PostT.Amplitude_std = std(Amplitudes,'omitnan');
@@ -153,7 +158,7 @@ switch ButtonName
         PostT.Stat_evenement_multichannel = discharges;
         PostT.number_of_spikes = nb_spikes;
         time = toc;
-        save(fullfile(saving_folder,['STATS_' newFname]));
+        save(fullfile(saving_folder,['STATS_' newFname]),'PostT');
     end
 end
 %% Intracerebral location (under development)
