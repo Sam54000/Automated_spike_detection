@@ -8,12 +8,12 @@
 clear all
 close all
 
-biosigFolder = '/Users/macbook/Desktop/ProgrammesSEEG/Biosig-master'; %Path where you downloaded biosig
-functionsPackageFolder = '/Users/macbook/Desktop/ProgrammesSEEG/Function-package-master'; %Path where you downloaded Function Package
+%biosigFolder = '/Users/macbook/Desktop/ProgrammesSEEG/Biosig-master'; %Path where you downloaded biosig
+%functionsPackageFolder = '/Users/macbook/Desktop/ProgrammesSEEG/Function-package-master'; %Path where you downloaded Function Package
 
 addpath(fullfile(pwd,'nextname'));
-addpath(biosigFolder);
-addpath(functionsPackageFolder);
+%addpath(biosigFolder);
+%addpath(functionsPackageFolder);
 
 %% File opening
 %[coord_elec_file,coord_elec_folder] = uigetfile('*xls', 'choose the coordinates Excel file');
@@ -162,6 +162,7 @@ switch ButtonName
         %time = toc;
         newStatsname = nextname(fullfile(saving_folder,data_name),'_1','.mat');
         save(fullfile(saving_folder,['STATS_' newStatsname]),'PostT');
+        close all
     end
 end
 %% Intracerebral location (under development)
