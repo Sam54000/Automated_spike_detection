@@ -103,10 +103,10 @@ switch ButtonName
                     win = [pos2-30,pos2+dur];
                     testStd = std(x(j,win(1,1):win(1,2)));
                     if x(j,pos2) > 2*testStd && x(j,pos2)>100 % Si x est supérieur à 2x la std & si x est > à 100 alors
+                        k = k+1;
                         mat(j,i,1:155) = x(j,win(1,1):win(1,2));
                         Amplitudes(i,j) = max(mat(j,i,1:155));
-                        nb_spikes(j,1) = k;
-                        k = k+1;
+                        nb_spikes(j,1) = k;                      
                     else
                         mat(j,i,1:155) = NaN;
                         Amplitudes(i,j) = NaN;
