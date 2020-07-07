@@ -58,6 +58,7 @@ switch ButtonName
                     fullfile(Directory(Selection(1,n)).folder,...
                     newFname));
         end
+        newFname = newFname(1,1:end-4);
         %% Data organization
 
         [signal,labels] = searchAndDestroy_bad_elec(sig{1,1},output.Names); %function which search and remove the channel MKR, SPO2, BEAT, ECG etc...
@@ -160,8 +161,8 @@ switch ButtonName
         PostT.Stat_evenement_multichannel = discharges;
         PostT.number_of_spikes = nb_spikes;
         %time = toc;
-        newStatsname = nextname(fullfile(saving_folder,data_name),'_1','.mat');
-        save(fullfile(saving_folder,['STATS_' newStatsname]),'PostT');
+        %newStatsname = nextname(fullfile(saving_folder,data_name),'_1','.mat');
+        save(fullfile(saving_folder,['STATS_' newFname]),'PostT');
         close all
     end
 end
