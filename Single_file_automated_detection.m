@@ -192,3 +192,62 @@ end
 %                       all_xlsfile{rawpos_center,4}];
 % %xlsread puis loaduntuchnii et convertion mm en voxel puis matcher
 % %le numéro de contact avec les coordonnées, 
+
+%% Calcul de l'écrat-type moyen inter-session
+%clear all 
+analysis_path = uigetdir();
+
+    Directory = dir(analysis_path);
+    file_names = {Directory.name};
+    [Selection, OK] = listdlg('PromptString','Select files to analyse',...
+                      'SelectionMode', 'multiple', ...
+                       'ListString', file_names);
+    [nb_files] = size(Selection);
+    
+    for n = 1:nb_files(1,2)
+        %Load variables from file into workspace
+        load(fullfile(Directory(Selection(1,n)).folder,Directory(Selection(1,n)).name)); %PostT file opening 
+        C{n,1} = PostT.Amplitude.';
+    end
+    
+% Création de la Matrice
+    Matrice = cat(2,C{:,1}); %Concatenate arrays along specified dimension, cat(dim, C{:}) for concatenate a cell or structure array containing numeric matrices into a single matrix
+    BigStd = std(Matrice,[],2,'omitnan');
+    BigMean = mean(Matrice,2,'omitnan');
+    
+% Test cohérence matrice BigMean et BigStd
+    Test = zeros(size(BigMean,1),1);
+    Test1 = Test + double(isnan(BigMean));
+    Test2 = Test + double(isnan(BigStd));
+    Test3 = logical(Test1) & logical(Test2);
+    verif1 = sum(double(Test3)-Test1);
+    
+% Supprimer les NaN
+if verif1 == 0
+    BigStd(isnan(BigStd),:)=[];
+    BigMean(isnan(BigMean),:)=[];
+    chanelkeep = PostT.Label_Bipolar(~Test3,1);
+else
+    warndlg("attention c'est chelou")
+end
+
+% Répertoire traitement
+BigPostT.Name_chanel_kepp = chanelkeep;
+BigPostT.Big_matrice = Matrice;
+BigPostT.Big_Mean = BigMean;
+BigPostT.Big_Std = BigStd;
+%save(fullfile(saving_folder,['BIGstat' newFname]),'BigPostT');
+
+%Mise en forme
+errorbar(BigMean,BigStd);
+xlim([0, size(chanelkeep,1)]);
+
+legend({'Mean'},'Location','southwest')    %Légende
+title('Ecart-type moyen inter-session') %titre 
+
+xlabel('Contact') 
+xticks([0:1:size(chanelkeep,1)]);
+%xticklabels()
+    
+ylabel('Amplitude (?V)')
+   
