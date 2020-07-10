@@ -209,7 +209,7 @@ analysis_path = uigetdir();
         load(fullfile(Directory(Selection(1,n)).folder,Directory(Selection(1,n)).name)); %PostT file opening 
         C{n,1} = PostT.Amplitude.';
     end
-    
+
 % Création de la Matrice
     Matrice = cat(2,C{:,1}); %Concatenate arrays along specified dimension, cat(dim, C{:}) for concatenate a cell or structure array containing numeric matrices into a single matrix
     BigStd = std(Matrice,[],2,'omitnan');
@@ -226,28 +226,43 @@ analysis_path = uigetdir();
 if verif1 == 0
     BigStd(isnan(BigStd),:)=[];
     BigMean(isnan(BigMean),:)=[];
-    chanelkeep = PostT.Label_Bipolar(~Test3,1);
+    channelKeep = PostT.Label_Bipolar(~Test3,1);
 else
     warndlg("attention c'est chelou")
 end
 
 % Répertoire traitement
-BigPostT.Name_chanel_kepp = chanelkeep;
+BigPostT.Names_channel = channelKeep;
 BigPostT.Big_matrice = Matrice;
 BigPostT.Big_Mean = BigMean;
 BigPostT.Big_Std = BigStd;
 %save(fullfile(saving_folder,['BIGstat' newFname]),'BigPostT');
 
-%Mise en forme
-errorbar(BigMean,BigStd);
-xlim([0, size(chanelkeep,1)]);
+% Pick up the letters of the electrodes
+nChannels = size(channelKeep,1); %compte le nombre de contacts
+for i = 1:nChannels
+    tmp = channelKeep{i,1}; % Met le nom du contact dans un variable temporaire
+    ChanLettersOnly{i,1} = tmp(isstrprop(tmp,'alpha')); % Prend uniquement les lettres de chaque contacts
+end
+[ElectrodeLetter,indexFirstContact,idx] = unique(ChanLettersOnly,'stable'); % Donne la lettre de chaque electrode (electrode A, electrode B etc...)
+%ElecAffiche(size(idx,1)) = [];
+ElecAffiche(indexFirstContact) = ElectrodeLetter; %Donne le nom de l'electrode Ã  la position souhaitÃ© pour l'affichage dans le XTick label
 
-legend({'Mean'},'Location','southwest')    %Légende
+%Mise en forme
+errorbar(BigMean,BigStd, 'color', [0 0 0]);
+hold on
+plot(BigMean,'r','LineWidth',3);
+xlim([0, size(channelKeep,1)]);
+
+legend('Standard deviation','Mean','Location','southwest')    %Légende
+legend('boxoff')
 title('Ecart-type moyen inter-session') %titre 
 
-xlabel('Contact') 
-xticks([0:1:size(chanelkeep,1)]);
-%xticklabels()
-    
-ylabel('Amplitude (?V)')
+xlabel('Electrodes')
+xticks([0:1:size(channelKeep,1)]);
+set(gca,'XTick',1:nChannels);
+set(gca,'XTickLabel',ElecAffiche);
+set(gca, 'fontsize', 12)
+
+ylabel('Amplitude (µV)')
    
