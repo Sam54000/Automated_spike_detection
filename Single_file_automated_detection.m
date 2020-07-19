@@ -5,8 +5,8 @@
 % Département : Biologie, Signaux et Systèmes en Cancérologie et Neurosciences
 % Projet : Neuroscience des systèmes et de la cognition
 %% Add paths
-clear all
-close all
+% clear all
+% close all
 
 %biosigFolder = '/Users/macbook/Desktop/ProgrammesSEEG/Biosig-master'; %Path where you downloaded biosig
 %functionsPackageFolder = '/Users/macbook/Desktop/ProgrammesSEEG/Function-package-master'; %Path where you downloaded Function Package
@@ -62,7 +62,8 @@ switch ButtonName
 
         [signal,labels] = searchAndDestroy_bad_elec(sig{1,1},output.Names); %function which search and remove the channel MKR, SPO2, BEAT, ECG etc...
         data.fs = output.SR; %Sampling frequency
-        data.d = transpose(signal); %Transposing the raw data in order to be readable for the spike detector
+        signal = notch_filter(signal, 1024, [50 100 150 200]);
+        data.d = signal; %Transposing the raw data in order to be readable for the spike detector
         clearvars 'signal';
         data.labels = labels;
         clearvars 'labels';
@@ -70,19 +71,18 @@ switch ButtonName
         data.tabs(1:sigsize(1,1),1) = 1/data.fs;
         %% Statistics1    
         %Filtering
-        [x, FiltSpec, ~] = bst_bandpass_hfilter(...
-                    transpose(data.d),... %Data to filter
-                    output.SR,...              %Sampling frequency
-                    10,...           %High pass cut off frequency (0 for only low pass)
-                    200,...       %Low pass cut off frequency
-                    0,...               %Mirroring the data 0: No, 1: Yes
-                    0,...               %ripple and attenuation coefficients (0 no attenuation)
-                    'filter',...        %'filter', filtering in time domain
-                    3,...               %Width of the transition band in Hz
-                    'bst-hfilter-2019');%Method
-        x = notch_filter(x, 1024, [7 50 68 82]);
+%         [x, FiltSpec, ~] = bst_bandpass_hfilter(...
+%                     transpose(data.d),... %Data to filter
+%                     output.SR,...              %Sampling frequency
+%                     10,...           %High pass cut off frequency (0 for only low pass)
+%                     70,...       %Low pass cut off frequency
+%                     0,...               %Mirroring the data 0: No, 1: Yes
+%                     0,...               %ripple and attenuation coefficients (0 no attenuation)
+%                     'filter',...        %'filter', filtering in time domain
+%                     3,...               %Width of the transition band in Hz
+%                     'bst-hfilter-2019');%Method
         %% Preparing
-        data.d = x.';
+        %data.d = x.';
         %% spike detection
         clear labels_BIP idx_spikes qEEG
         [d, DE, discharges, d_decim, envelope,...
@@ -90,35 +90,36 @@ switch ButtonName
         labels_BIP, idx_spikes, qEEG(n,:)] = ...
         MAIN_fun_standalone3(data,data_name,saving_folder);        
 
+    %%
+        pos = round(discharges.MP*output.SR);
+        dur = 124;
+        f = waitbar(0,'1','Name','Processing...',...
+    'CreateCancelBtn','setappdata(gcbf,''canceling'',1)');
+        for j = 1:size(pos,2)
         %% Minimizing false positive detection
         pos = round(discharges.MP*output.SR);
         dur = 124;
         d = d.';
+        f = waitbar(0,'1','Name','Processing...',...
+    'CreateCancelBtn','setappdata(gcbf,''canceling'',1)');
+        f2 = waitbar(0,'name','name','processing');
         for j = 1:size(pos,2)
             k = 0;
+
+           clear MatTmp
             for i = 1:size(pos,1)
                 if ~isnan(pos(i,j))
-                    [~,idx] = max(d(j,pos(i,j)-10:pos(i,j)+50));
-                    dif = idx-10;
-                    pos2 = pos(i,j)+dif;
-                    win = [pos2-30,pos2+dur];
-                    testStd = std(d(j,win(1,1):win(1,2)));
-                    if d(j,pos2) > 2*testStd && d(j,pos2)>100 % Si x est supérieur à 2x la std & si x est > à 100 alors
-                        k = k+1;
-                        mat(j,i,1:155) = d(j,win(1,1):win(1,2));
-                        Amplitudes(i,j) = max(mat(j,i,1:155));
-                        nb_spikes(j,1) = k;                      
-                    else
-                         mat(j,i,1:155) = NaN;
-                         Amplitudes(i,j) = NaN;
-                     end
-                else
-                    mat(j,i,1:155) = NaN;
-                    Amplitudes(i,j) = NaN;
+                    [LocalMaximum,idx] = max(d(j,pos(i,j)-30:pos(i,j)+50));
+                    win = [idx-30,idx+dur];
+                    signalStd = std(d(j,:));
+                    waitbar(i/size(pos,1),f2);
+                    if LocalMaximum > 3*testStd && LocalMaximum > 100 % Si x est supérieur à 2x la std & si x est > à 100 alors
+                        MatTmp(i,:) = d(j,win(1,1):win(1,2));
+                    end
                 end
             end
-            %waitbar(j/size(pos,2),f);
-            %close(f)
+            Spikes{j,1} = MatTmp;
+            waitbar(j/size(pos,2),f);
         end
 %% Statistics 2
 %         numSP = size(DE.chan); %number of detected spikes

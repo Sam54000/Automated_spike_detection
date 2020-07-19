@@ -1,4 +1,4 @@
-function [d, DE, discharges, d_decim, envelope, background, envelope_pdf, clustering, labels_BIP, idx_spikes, qEEG] = MAIN_fun_standalone3(data,data_name,saving_folder)
+function [d, DE, discharges, d_decim, envelope, background, envelope_pdf, clustering, labels_BIP, idx_spikes, qEEG, tab] = MAIN_fun_standalone3(data,data_name,saving_folder)
 
 [d,labels_BIP]=ref2bip_v4(double(data.d),data.labels);
 [DE, discharges, d_decim, envelope, background, envelope_pdf] = spike_detector_hilbert_v23(d,data.fs);
@@ -113,5 +113,6 @@ end
 
  saveas(gcf,[saving_folder '\Clusters_' data_name], 'fig');
  close figure 3
+ writetable(cell2table(tab),'results.csv','Delimiter',';','WriteVariableNames',0);
 end
-%writetable(cell2table(tab),'results.csv','Delimiter',';','WriteVariableNames',0)
+
