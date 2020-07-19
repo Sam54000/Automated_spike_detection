@@ -58,12 +58,27 @@ switch ButtonName
                     newFname));
         end
         newFname = newFname(1,1:end-4);
-        %% Data organization
-
+        %% Preparing and filtering
+%       **********CHECKED*********
         [signal,labels] = searchAndDestroy_bad_elec(sig{1,1},output.Names); %function which search and remove the channel MKR, SPO2, BEAT, ECG etc...
+        f = [2 5];
+        a = [0 1];
+        dev = [0.01 0.05];
+        [n,Wn,beta,ftype] = kaiserord(f,a,dev,output.SR);
+        b = fir1(n,Wn,ftype);      
+        parfor i=1:size(signal,1)
+        FilteredSignal(i,:) = notchFilter(50,fs,signal(i,:));
+            for k = 2:4
+                FilteredSignal(i,:) = notchFilter(50*k,fs,FilteredSignal(i,:));
+            end
+        end
+        parfor i=1:size(signal,1)
+            FilteredSignal(i,:) = filter(b,1,FilteredSignal(i,:));
+        end
+        %%
+        
         data.fs = output.SR; %Sampling frequency
-        signal = notch_filter(signal, 1024, [50 100 150 200]);
-        data.d = signal; %Transposing the raw data in order to be readable for the spike detector
+        data.d = FilteredSignal; %Transposing the raw data in order to be readable for the spike detector
         clearvars 'signal';
         data.labels = labels;
         clearvars 'labels';
@@ -87,15 +102,8 @@ switch ButtonName
         clear labels_BIP idx_spikes qEEG
         [d, DE, discharges, d_decim, envelope,...
         background, envelope_pdf, clustering,...
-        labels_BIP, idx_spikes, qEEG(n,:)] = ...
-        MAIN_fun_standalone3(data,data_name,saving_folder);        
-
-    %%
-        pos = round(discharges.MP*output.SR);
-        dur = 124;
-        f = waitbar(0,'1','Name','Processing...',...
-    'CreateCancelBtn','setappdata(gcbf,''canceling'',1)');
-        for j = 1:size(pos,2)
+        labels_BIP, idx_spikes, qEEG(n,:), tab] = ...
+        MAIN_fun_standalone3(data,data_name,saving_folder);
         %% Minimizing false positive detection
         pos = round(discharges.MP*output.SR);
         dur = 124;
