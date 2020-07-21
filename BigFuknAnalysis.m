@@ -11,5 +11,5 @@ for n = 1:nb_files(1,2)
 end
 
 BigMatrix = cat(2,C{:,1});
-BigStd = std(BigMatri,[],2);
+BigStd = std(BigMatrix,[],2);
 BigMean = mean(BigMatrix,2);
