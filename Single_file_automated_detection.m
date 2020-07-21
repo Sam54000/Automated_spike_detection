@@ -51,13 +51,13 @@ switch ButtonName
         saving_folder = Directory(Selection(1,n)).folder; %path of the new folder created before
         test_exist_file = exist([data_name '.TRC'],'file');
         Test_Renamed_File = strcmp(Directory(Selection(1,n)).name,[data_name '.TRC']);
-        newFname = nextname(fullfile(saving_folder,data_name),'_1','.TRC');
-        if Test_Renamed_File == 0            
-            movefile(fullfile(Directory(Selection(1,n)).folder,Directory(Selection(1,n)).name),... %moving and renaming the SEEG recording file
-                    fullfile(Directory(Selection(1,n)).folder,...
-                    newFname));
-        end
-        newFname = newFname(1,1:end-4);
+%         newFname = nextname(fullfile(saving_folder,data_name),'_1','.TRC');
+%         if Test_Renamed_File == 0            
+%             movefile(fullfile(Directory(Selection(1,n)).folder,Directory(Selection(1,n)).name),... %moving and renaming the SEEG recording file
+%                     fullfile(Directory(Selection(1,n)).folder,...
+%                     newFname));
+%         end
+%         newFname = newFname(1,1:end-4);
         %% Preparing and filtering
 %       **********CHECKED*********
         [signal,labels] = searchAndDestroy_bad_elec(sig{1,1},output.Names); %function which search and remove the channel MKR, SPO2, BEAT, ECG etc...
@@ -75,8 +75,7 @@ switch ButtonName
         parfor i=1:size(signal,1)
             FilteredSignal(i,:) = filter(b,1,FilteredSignal(i,:));
         end
-        %%
-        
+        %%       
         data.fs = output.SR; %Sampling frequency
         data.d = FilteredSignal; %Transposing the raw data in order to be readable for the spike detector
         clearvars 'signal';
@@ -171,7 +170,7 @@ switch ButtonName
         PostT.number_of_spikes = nb_spikes;
         %time = toc;
         %newStatsname = nextname(fullfile(saving_folder,data_name),'_1','.mat');
-        save(fullfile(saving_folder,['STATS_' newFname]),'PostT');
+        save(fullfile(saving_folder,['STATS_' data_name]),'PostT');
         close all
     end
 end
