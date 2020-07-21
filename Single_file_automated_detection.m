@@ -5,8 +5,8 @@
 % Département : Biologie, Signaux et Systèmes en Cancérologie et Neurosciences
 % Projet : Neuroscience des systèmes et de la cognition
 %% Add paths
-% clear all
-% close all
+clear all
+close all
 
 %biosigFolder = '/Users/macbook/Desktop/ProgrammesSEEG/Biosig-master'; %Path where you downloaded biosig
 %functionsPackageFolder = '/Users/macbook/Desktop/ProgrammesSEEG/Function-package-master'; %Path where you downloaded Function Package
@@ -67,9 +67,9 @@ switch ButtonName
         [n,Wn,beta,ftype] = kaiserord(f,a,dev,output.SR);
         b = fir1(n,Wn,ftype);      
         parfor i=1:size(signal,1)
-        FilteredSignal(i,:) = notchFilter(50,fs,signal(i,:));
+        FilteredSignal(i,:) = notchFilter(50,output.SR,signal(i,:));
             for k = 2:4
-                FilteredSignal(i,:) = notchFilter(50*k,fs,FilteredSignal(i,:));
+                FilteredSignal(i,:) = notchFilter(50*k,output.SR,FilteredSignal(i,:));
             end
         end
         parfor i=1:size(signal,1)
@@ -77,7 +77,7 @@ switch ButtonName
         end
         %%       
         data.fs = output.SR; %Sampling frequency
-        data.d = FilteredSignal; %Transposing the raw data in order to be readable for the spike detector
+        data.d = FilteredSignal'; %Transposing the raw data in order to be readable for the spike detector
         clearvars 'signal';
         data.labels = labels;
         clearvars 'labels';
@@ -120,7 +120,7 @@ switch ButtonName
                     win = [idx-30,idx+dur];
                     signalStd = std(d(j,:));
                     waitbar(i/size(pos,1),f2);
-                    if LocalMaximum > 3*testStd && LocalMaximum > 100 % Si x est supérieur à 2x la std & si x est > à 100 alors
+                    if LocalMaximum > 3*signalStd && LocalMaximum > 100 % Si x est supérieur à 2x la std & si x est > à 100 alors
                         MatTmp(i,:) = d(j,win(1,1):win(1,2));
                     end
                 end
