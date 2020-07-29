@@ -58,14 +58,18 @@ hold on
 plot(BigMean,'r','LineWidth',3);
 xlim([0, size(channelKeep,1)]);
 
-legend('Standard deviation','Mean','Location','southwest')    %Légende
-legend('boxoff')
-title('Ecart-type moyen inter-session') %titre 
-
-xlabel('Electrodes')
+legend('Standard deviation','Mean','Location','southwest');   %Légende
+legend('boxoff');
+title('Amplitude moyenne par session','fontsize', 20); %titre 
+ylabel('Amplitude($\mu$V)','fontsize', 14);
+xlabel('Electrodes','fontsize', 14);
 xticks([0:1:size(channelKeep,1)]);
 set(gca,'XTick',1:nChannels);
 set(gca,'XTickLabel',ElecAffiche);
-set(gca, 'fontsize', 12)
+set(gca, 'fontsize', 12);
 
-ylabel('Amplitude (µV)')
+
+saveas(gcf,fullfile(analysis_path,'BigMatrix'),'fig');
+saveas(gcf,fullfile(analysis_path,'BigMatrix'),'png');
+
+close all
