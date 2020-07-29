@@ -95,18 +95,19 @@ switch ButtonName
         %% Minimizing false positive detection
         pos = round(discharges.MP*output.SR);
         dur = 124;
+        d = d.';
         for j = 1:size(pos,2)
             k = 0;
             for i = 1:size(pos,1)
                 if ~isnan(pos(i,j))
-                    [~,idx] = max(x(j,pos(i,j)-10:pos(i,j)+50));
+                    [~,idx] = max(d(j,pos(i,j)-10:pos(i,j)+50));
                     dif = idx-10;
                     pos2 = pos(i,j)+dif;
                     win = [pos2-30,pos2+dur];
-                    testStd = std(x(j,win(1,1):win(1,2)));
-                    if x(j,pos2) > 2*testStd && x(j,pos2)>100 % Si x est supérieur à 2x la std & si x est > à 100 alors
+                    testStd = std(d(j,win(1,1):win(1,2)));
+                    if d(j,pos2) > 2*testStd && d(j,pos2)>100 % Si d est supérieur à 2x la std & si d est > à 100 alors
                         k = k+1;
-                        mat(j,i,1:155) = x(j,win(1,1):win(1,2));
+                        mat(j,i,1:155) = d(j,win(1,1):win(1,2));
                         Amplitudes(i,j) = max(mat(j,i,1:155));
                         nb_spikes(j,1) = k;                      
                     else
