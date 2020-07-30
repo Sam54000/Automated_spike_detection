@@ -34,7 +34,7 @@ if verif1 == 0
     BigMean(isnan(BigMean),:)=[];
     channelKeep = PostT.Label_Bipolar(~Test3,1);
 else
-    warndlg("attention c'est chelou")
+    warndlg("attention")
 end
 
 %Processing directory
@@ -60,18 +60,16 @@ hold on
 plot(BigMean,'r','LineWidth',3);
 
 %Legend
-title('Amplitude moyenne par session','fontsize', 20); 
-
 xlim([0, size(channelKeep,1)]);
 xticks([0:1:size(channelKeep,1)]);
 legend('Standard deviation','Mean','Location','southwest');   
 legend('boxoff');
-
-ylabel('Amplitude($\mu$V)','fontsize', 14);
+ylabel('Amplitude(µV)','fontsize', 14);%$\mu$V
 xlabel('Electrodes','fontsize', 14);
 set(gca,'XTick',1:nChannels);
 set(gca,'XTickLabel',ElecAffiche);
-set(gca, 'fontsize', 12);
+set(gca, 'fontsize', 14);
+title('Amplitude moyenne sur toutes les sessions','fontsize', 20); 
 
 % Save to the desired directory
 saveas(gcf,fullfile(analysis_path,'BigMatrix'),'fig');
