@@ -35,26 +35,26 @@ switch ButtonName
                        'ListString', file_names);
     [nb_files] = size(Selection);
     for n = 1:nb_files(1,2)
-    %% file preparation and sorting
+    %% File preparation and sorting
         [sig,output] = icem_read_micromed_trc(fullfile(Directory(Selection(1,n)).folder,Directory(Selection(1,n)).name) , 0, 1); %TRC file opening
-        Pat_Name = split(output.Name, " "); %find space character in order to separate patient's name and last name
+        Pat_Name = split(output.Name, " "); %Find space character in order to separate patient's name and last name
         Pat_lastname = Pat_Name(1,1);
         Pat_firstname = Pat_Name(2,1);
-        date = replace(output.Date,'/', '_'); %date of the recording
-        sep_dot = findstr(output.Start,':'); %find the ":" in order to have a writable filename with start time recording
-        output.Start(sep_dot(1,1)) = replace(output.Start(sep_dot(1,1)),':','h'); %replace the first ":" by h (hour)
-        output.Start(sep_dot(1,2)) = replace(output.Start(sep_dot(1,2)),':','m'); %replace the second ":" by m (minutes)
+        date = replace(output.Date,'/', '_'); %Date of the recording
+        sep_dot = findstr(output.Start,':'); %Find the ":" in order to have a writable filename with start time recording
+        output.Start(sep_dot(1,1)) = replace(output.Start(sep_dot(1,1)),':','h'); %Replace the first ":" by h (hour)
+        output.Start(sep_dot(1,2)) = replace(output.Start(sep_dot(1,2)),':','m'); %Replace the second ":" by m (minutes)
         clear sep_dot 
         sep_dot = findstr(output.End,':'); %find the ":" in order to replace it in order to have a writable filename with end time recording
         output.End(sep_dot(1,1)) = replace(output.End(sep_dot(1,1)),':','h');
         output.End(sep_dot(1,2)) = replace(output.End(sep_dot(1,2)),':','m');
-        data_name = [Pat_lastname{1:1}(1:3) '_' Pat_firstname{1:1}(1:2) '_' date '_' output.Start(1:end) '_' output.End(1:end-4)]; %name of the file which will be renamed
-        saving_folder = Directory(Selection(1,n)).folder; %path of the new folder created before
+        data_name = [Pat_lastname{1:1}(1:3) '_' Pat_firstname{1:1}(1:2) '_' date '_' output.Start(1:end) '_' output.End(1:end-4)]; %Name of the file which will be renamed
+        saving_folder = Directory(Selection(1,n)).folder; %Path of the new folder created before
         test_exist_file = exist([data_name '.TRC'],'file');
         Test_Renamed_File = strcmp(Directory(Selection(1,n)).name,[data_name '.TRC']);
         newFname = nextname(fullfile(saving_folder,data_name),'_1','.TRC');
         if Test_Renamed_File == 0            
-            movefile(fullfile(Directory(Selection(1,n)).folder,Directory(Selection(1,n)).name),... %moving and renaming the SEEG recording file
+            movefile(fullfile(Directory(Selection(1,n)).folder,Directory(Selection(1,n)).name),... %Moving and renaming the SEEG recording file
                     fullfile(Directory(Selection(1,n)).folder,...
                     newFname));
         end
@@ -78,7 +78,7 @@ switch ButtonName
                     10,...           %High pass cut off frequency (0 for only low pass)
                     200,...       %Low pass cut off frequency
                     0,...               %Mirroring the data 0: No, 1: Yes
-                    0,...               %ripple and attenuation coefficients (0 no attenuation)
+                    0,...               %Ripple and attenuation coefficients (0 no attenuation)
                     'filter',...        %'filter', filtering in time domain
                     3,...               %Width of the transition band in Hz
                     'bst-hfilter-2019');%Method
