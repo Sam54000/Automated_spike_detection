@@ -50,7 +50,7 @@ end
 [ElectrodeLetter,indexFirstContact,idx] = unique(ChanLettersOnly,'stable'); %Give the letter of each electrode (electrode A, electrode B etc...)
 ElecAffiche(indexFirstContact) = ElectrodeLetter; %Gives the name of the electrode at the desired position for display in the XTick label
 
-%% Spatial distribution
+%% Creation the global spatial distribution graph
 
 for n = 1:nb_files(1,2)
     load(fullfile(Directory(Selection(1,n)).folder,Directory(Selection(1,n)).name));
@@ -62,7 +62,7 @@ for n = 1:nb_files(1,2)
     PostT.number_of_spikes(size(PostT.number_of_spikes):size(PostT.Label_Bipolar),1) = 0;
     PostT.number_of_spikes(PostT.number_of_spikes == 0) = NaN; %Replacement of 0 by Nan
     x = 1:1:size(PostT.Label_Bipolar,1);
-    scatter(x,PostT.number_of_spikes,'fill'); %Scatter figure
+    scatter(x,PostT.number_of_spikes,'fill'); %Scatter plot
     hold on
     nbSpikeTotal(n,1) = sum(PostT.number_of_spikes,'omitnan'); %Total sum of PostT.number_of_spikes without NaN
 end
@@ -75,11 +75,34 @@ xticks([0:1:size(channelKeep,1)]);
 set(gca,'XTick',1:nChannels);
 set(gca,'XTickLabel',ElecAffiche);
 set(gca, 'fontsize', 14)
-ylabel('Nombre de pointe','fontsize', 14)
+ylabel('Nombre de pointes','fontsize', 14)
 
 %Save to the desired directory
 saveas(gcf,fullfile(analysis_path,'Distribution_spatial_nb_pointes'),'fig');
 saveas(gcf,fullfile(analysis_path,'Distribution_spatial_nb_pointes'),'png');
+
+close
+
+%% Creation the spatial distribution graph per day
+
+
+
+
+
+
+%Legend 
+title('Distribution spatiale du nombre de pointes detectees','fontsize', 20);
+xlabel('Electrodes');
+xlim([0, size(channelKeep,1)]);
+xticks([0:1:size(channelKeep,1)]);
+set(gca,'XTick',1:nChannels);
+set(gca,'XTickLabel',ElecAffiche);
+set(gca, 'fontsize', 14)
+ylabel('Nombre de pointes','fontsize', 14)
+
+%Save to the desired directory
+saveas(gcf,fullfile(analysis_path,'Distribution_spatial_nb_pointes_par_jour'),'fig');
+saveas(gcf,fullfile(analysis_path,'Distribution_spatial_nb_pointes_par_jour'),'png');
 
 close
 
@@ -98,12 +121,12 @@ figure
 bar(nbSpikeTotal);
 
 %Legend
-title('Nombre de pointe par session','fontsize', 20)  
+title('Nombre de pointes par session','fontsize', 20)  
 xlabel('Enregistrement (date, heure)','fontsize', 14)
 xticks([1:size(nbSpikeTotal,1)]);
 xticklabels(DayHour);
-set(gca,'TickLabelInterpreter','none')
-ylabel('Nombre de pointe','fontsize', 14);
+set(gca,'TickLabelInterpreter','none') %LateX interpreter
+ylabel('Nombre de pointes','fontsize', 14);
 
 %Save to the desired directory
 saveas(gcf,fullfile(analysis_path,'nb_spike_inter_session'),'fig');
