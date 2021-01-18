@@ -35,6 +35,7 @@ switch ButtonName
     [nb_files] = size(Selection);
     for n = 1:nb_files(1,2)
     %% file preparation and sorting
+        clearvars -except ButtonName analysis_path file_names Selection Directory n nb_files
         [sig,output] = icem_read_micromed_trc(fullfile(Directory(Selection(1,n)).folder,Directory(Selection(1,n)).name) , 0, 1); %TRC file opening
         Pat_Name = split(output.Name, " "); %find space character in order to separate patient's name and last name
         Pat_lastname = Pat_Name(1,1);
@@ -60,18 +61,17 @@ switch ButtonName
 %         newFname = newFname(1,1:end-4);
         %% Preparing and filtering
 %       **********CHECKED*********
-        [signal,labels] = searchAndDestroy_bad_elec(sig{1,1},output.Names); %function which search and remove the channel MKR, SPO2, BEAT, ECG etc...
+        [signal,labels] = searchAndDestroy_bad_elec(sig{1,1},output.Names); %function which search and remove the channel MKR, SPO2, BEAT, ECG etc...     
+        for i=1:size(signal,1)
+            FilteredSignal(i,:) = notchFilter(50,output.SR,signal(i,:));
+            FilteredSignal(i,:) = notchFilter(50*2,output.SR,FilteredSignal(i,:));
+        end
+        
         f = [2 5];
         a = [0 1];
         dev = [0.01 0.05];
-        [n,Wn,beta,ftype] = kaiserord(f,a,dev,output.SR);
-        b = fir1(n,Wn,ftype);      
-        parfor i=1:size(signal,1)
-        FilteredSignal(i,:) = notchFilter(50,output.SR,signal(i,:));
-            for k = 2:4
-                FilteredSignal(i,:) = notchFilter(50*k,output.SR,FilteredSignal(i,:));
-            end
-        end
+        [n1,Wn,beta,ftype] = kaiserord(f,a,dev,output.SR);
+        b = fir1(n1,Wn,ftype); 
         parfor i=1:size(signal,1)
             FilteredSignal(i,:) = filter(b,1,FilteredSignal(i,:));
         end
@@ -83,50 +83,47 @@ switch ButtonName
         clearvars 'labels';
         sigsize = size(data.d);
         data.tabs(1:sigsize(1,1),1) = 1/data.fs;
-        %% Statistics1    
-        %Filtering
-%         [x, FiltSpec, ~] = bst_bandpass_hfilter(...
-%                     transpose(data.d),... %Data to filter
-%                     output.SR,...              %Sampling frequency
-%                     10,...           %High pass cut off frequency (0 for only low pass)
-%                     70,...       %Low pass cut off frequency
-%                     0,...               %Mirroring the data 0: No, 1: Yes
-%                     0,...               %ripple and attenuation coefficients (0 no attenuation)
-%                     'filter',...        %'filter', filtering in time domain
-%                     3,...               %Width of the transition band in Hz
-%                     'bst-hfilter-2019');%Method
-        %% Preparing
-        %data.d = x.';
         %% spike detection
-        clear labels_BIP idx_spikes qEEG
         [d, DE, discharges, d_decim, envelope,...
         background, envelope_pdf, clustering,...
-        labels_BIP, idx_spikes, qEEG(n,:), tab] = ...
+        labels_BIP, idx_spikes, qEEG, tab] = ...
         MAIN_fun_standalone3(data,data_name,saving_folder);
         %% Minimizing false positive detection
         pos = round(discharges.MP*output.SR);
         dur = 124;
         d = d.';
-        f = waitbar(0,'1','Name','Processing...',...
+        fBar = waitbar(0,'1','Name','Processing...',...
     'CreateCancelBtn','setappdata(gcbf,''canceling'',1)');
         f2 = waitbar(0,'name','name','processing');
         for j = 1:size(pos,2)
             k = 0;
-
            clear MatTmp
+           l=1;
             for i = 1:size(pos,1)
                 if ~isnan(pos(i,j))
                     [LocalMaximum,idx] = max(d(j,pos(i,j)-30:pos(i,j)+50));
-                    win = [idx-30,idx+dur];
+                    dif = idx-10;
+                    pos2 = pos(i,j)+dif;
+                    win = [pos2-30,pos2+dur];
                     signalStd = std(d(j,:));
                     waitbar(i/size(pos,1),f2);
                     if LocalMaximum > 3*signalStd && LocalMaximum > 100 % Si x est supérieur à 2x la std & si x est > à 100 alors
-                        MatTmp(i,:) = d(j,win(1,1):win(1,2));
+                        MatTmp(l,:) = d(j,win(1,1):win(1,2));
+                        AmpTmp(l,1) = LocalMaximum;
+                        l = l+1;
                     end
                 end
             end
-            Spikes{j,1} = MatTmp;
-            waitbar(j/size(pos,2),f);
+            if exist('MatTmp','var')
+                Spikes{j,1} = MatTmp;
+                Amplitudes{j,1} = AmpTmp;
+                PostT.Amplitude_moyenne = mean(Amplitudes{j,1},'omitnan');
+                PostT.Amplitude_std = std(Amplitudes{j,1},'omitnan');
+                PostT.Valeurs_max = max(Amplitudes{j,1});
+                PostT.Valeurs_min = min(Amplitudes{j,1});
+                PostT.number_of_spikes = size(Amplitudes{j,1},1);
+            end
+            waitbar(j/size(pos,2),fBar);
         end
 %% Statistics 2
 %         numSP = size(DE.chan); %number of detected spikes
@@ -159,15 +156,10 @@ switch ButtonName
         PostT.End = output.End;
         PostT.date = date;
         PostT.Amplitude = Amplitudes;
-        PostT.Amplitude_moyenne = mean(Amplitudes,'omitnan');
-        PostT.Amplitude_std = std(Amplitudes,'omitnan');
-        PostT.Valeurs_max = max(Amplitudes);
-        PostT.Spike_Matrix = mat;
-        PostT.Valeurs_min = min(Amplitudes);
+        PostT.Spike_Matrix = Spikes;
         PostT.Spike_occurence = qEEG;
         PostT.Stat_evenement_individuel = DE;
         PostT.Stat_evenement_multichannel = discharges;
-        PostT.number_of_spikes = nb_spikes;
         %time = toc;
         %newStatsname = nextname(fullfile(saving_folder,data_name),'_1','.mat');
         save(fullfile(saving_folder,['STATS_' data_name]),'PostT');
