@@ -15,10 +15,9 @@ clear all; close all; clc;
 %% Add paths
 cvxFolder =    '';
 %biosigFolder = 'Z:\Programs\GitHub\Biosig';
-functionsPackageFolder = 'Z:\Programs\GitHub\fun';
-addpath('./MAIN_fun_standalone');
-addppath(cvxFolder);
-addpath(functionsPackageFolder);
+addpath('Z:\Programs\GitHub\Automated_spike_detection\MAIN_fun_standalone');
+%addppath(cvxFolder);
+addpath('Z:\Programs\GitHub\fun');
 %% Question TRC or Matfile
 answer = questdlg('SEEG file type', ...
 	'SEEG data filetype', ...
@@ -51,7 +50,8 @@ end
 %% loading a patient micromed trc-file
 if filetype == 2
     [file,path] = uigetfile('.trc');
-    [sig,output]  = icem_read_micromed_trc([path file], 0, 1);
+    FullFile = fullfile(path,file);
+    [sig,output]  = icem_read_micromed_trc(filepath, 0, 1);
     [signal,labels] = searchAndDestroy_bad_elec(sig{1,1},output.Names);
     data.fs = output.SR;
     data.d = transpose(signal);
@@ -75,7 +75,7 @@ end
         labels_BIP,... 
         idx_elec,...
         qEEG,...
-    ] = MAIN_fun_standalone2(data,'none',5,[path file]);
+    ] = MAIN_fun_standalone2(data,'none',5,FullFile);
 %% Data processing
 matSpike = discharges.MA(discharges.MV == 1);
 sigsizeBIP = size(labels_BIP);

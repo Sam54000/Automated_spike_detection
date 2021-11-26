@@ -1,9 +1,9 @@
-function [d, DE, discharges, d_decim, envelope, background, envelope_pdf, clustering, labels_BIP, idx_spikes, qEEG] = MAIN_fun_standalone2(data,tdcsState,winsize,saving_folder)
+function [d, DE, discharges, d_decim, envelope, background, envelope_pdf, clustering, labels_BIP, idx_spikes, qEEG] = MAIN_fun_standalone2(data,tdcsState,winsize,file)
 nb_sample_win = winsize.*data.fs; %winsize in seconde
 [d,labels_BIP]=ref2bip_v4(double(data.d),data.labels);
 [DE, discharges, d_decim, envelope, background, envelope_pdf] = spike_detector_hilbert_v23(d,data.fs,['w ' nb_sample_win]);
 discharges.MTABS=datenum(0,0,0,0,0,discharges.MP)+data.tabs(1);
-
+[filepath,filename,~] = fileparts(file);
 %% klastrování
 duration=(size(d,1)/data.fs/60);
 clustering=clustering_main_fun(discharges,duration);
@@ -93,7 +93,7 @@ for i=1:size(clustering.qIED,1)
     tab(2+i,:)=[{['cluster #' num2str(i)]},num2cell(clustering.qIED(i,:)/duration)];    
 end
 
-saveas(gcf,[saving_folder '\IED_' tdcsState], '.fig');
+saveas(gcf,[filepath '\IED_Figure'], 'fig');
 close figure 2
 
 % Clustering
@@ -110,7 +110,7 @@ for i=1:length(cidx)
     title(['Cluster #' num2str(i) ' - ' num2str(clustering.evt_percent(i),'%.01f') '%'])
 end
 
-saveas(gcf,[saving_folder 'Clusters' tdcsState], '.fig');
+saveas(gcf,[filepath '\IED_Clusters'], 'fig');
 close figure 3
 end
 %writetable(cell2table(tab),'results.csv','Delimiter',';','WriteVariableNames',0)

@@ -32,6 +32,7 @@ end
 
 if filetype == 1
     [file,path] = uigetfile('*.mat'); %browse mat-file
+    FullFile = fullfile(path,file);
     sig=load([path file]);            %loading mat-file
     [signal,labels] = searchAndDestroy_bad_elec(sig.avg,sig.elec.label); %searching bad elec and delete the signal corresponding to the bad elec
     prompt = {'Sampling frequency (Hz)'}; %Boite de dialogue où sont saisies les paramètres
@@ -50,7 +51,8 @@ end
 %% loading a patient micromed trc-file
 if filetype == 2
     [file,path] = uigetfile('.trc');
-    [sig,output]  = icem_read_micromed_trc([path file], 0, 1);
+    FullFile = fullfile(path,file);
+    [sig,output]  = icem_read_micromed_trc(FullFile, 0, 1);
     [signal,labels] = searchAndDestroy_bad_elec(sig{1,1},output.Names);
     data.fs = output.SR;
     data.d = transpose(signal);
@@ -74,7 +76,7 @@ end
         labels_BIP,... 
         idx_elec,...
         qEEG,...
-    ] = MAIN_fun_standalone2(data,'none',5,[path file]);
+    ] = MAIN_fun_standalone2(data,'none',5,FullFile);
 %% Data processing
 matSpike = discharges.MA(discharges.MV == 1);
 sigsizeBIP = size(labels_BIP);
