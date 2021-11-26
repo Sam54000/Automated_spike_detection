@@ -15,9 +15,10 @@ clear all; close all; clc;
 %% Add paths
 cvxFolder =    '';
 %biosigFolder = 'Z:\Programs\GitHub\Biosig';
-addpath('Z:\Programs\GitHub\Automated_spike_detection\MAIN_fun_standalone');
-%addppath(cvxFolder);
-addpath('Z:\Programs\GitHub\fun');
+functionsPackageFolder = 'Z:\Programs\GitHub\fun';
+addpath('./MAIN_fun_standalone');
+addppath(cvxFolder);
+addpath(functionsPackageFolder);
 %% Question TRC or Matfile
 answer = questdlg('SEEG file type', ...
 	'SEEG data filetype', ...
