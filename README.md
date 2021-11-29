@@ -22,4 +22,4 @@
  6. Select the file(s) you want to analyse. And press open
  
  ## Potential issues
- The analysis require a lot of memory and CPU ressource, it can take a while
+ The analysis require a lot of memory and CPU ressource, it can takes a while
