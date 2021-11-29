@@ -108,7 +108,7 @@ for m = 1:nb_elec
     StatSP.sd(m,1) = std(VAL_SPIKES{n,1});
     StatSP.max(m,1) = max(VAL_SPIKES{n,1});
     StatSP.min(m,1) = min(VAL_SPIKES{n,1});
-    StatSP.elec = elec;
+    StatSP.elec = 
 end
 
 [FILEPATH,NAME,EXT] = fileparts(FullFile);
