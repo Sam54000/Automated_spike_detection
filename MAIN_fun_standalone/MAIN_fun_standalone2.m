@@ -1,4 +1,4 @@
-function [d, DE, discharges, d_decim, envelope, background, envelope_pdf, clustering, labels_BIP, idx_spikes, qEEG] = MAIN_fun_standalone2(data,tdcsState,winsize,file)
+function [d, DE, discharges, d_decim, envelope, background, envelope_pdf, clustering, labels_BIP, idx_spikes, qEEG] = MAIN_fun_standalone2(data,winsize,file)
 nb_sample_win = winsize.*data.fs; %winsize in seconde
 [d,labels_BIP]=ref2bip_v4(double(data.d),data.labels);
 [DE, discharges, d_decim, envelope, background, envelope_pdf] = spike_detector_hilbert_v23(d,data.fs,['-w ' num2str(nb_sample_win)]);

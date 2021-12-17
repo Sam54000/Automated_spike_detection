@@ -49,7 +49,11 @@ switch EXT
         [sig,output]  = icem_read_micromed_trc(FILE, 0, 1);
         [signal,labels] = searchAndDestroy_bad_elec(sig{1,1},output.Names);
         data.fs = output.SR;
-        data.d = transpose(signal);
+        if strcmp(NAME,'EEG_POST_NEG_ZO_TO_CROP')
+            data.d = transpose(signal(:,(120*output.SR):(1200*output.SR)));
+        else
+            data.d = transpose(signal);
+        end
         clearvars 'signal';
         data.labels = labels;
         clearvars 'labels';
@@ -66,21 +70,21 @@ end
         envelope_pdf,... 
         clustering,... 
         labels_BIP,... 
-        ~,...
+        idx_red,...
         qEEG,...
-    ] = MAIN_fun_standalone2(data,'none',5,FILE);
+    ] = MAIN_fun_standalone2(data,5,FILE);
 %% Extraction Raw Spikes' Values
 
     idx_elec = find(clustering.qAR(1,:) == 1);
-    [nb_elec,~] = size(idx_elec);
+    nb_elec = size(idx_elec,2);
     dat_irrit = d(:,idx_elec);
     for n = 1:nb_elec
-        elec{n,1} = labels_BIP{idx_elec(n,1),1};
+        elec{n,1} = labels_BIP{idx_elec(n),1};
         clear window pos m
         [ValMinPos,idxMinPos] = min(discharges.MP,[],2);
-        pos = round(discharges.MP(clustering.class == 1 & idxMinPos == idx_elec(n,1) & discharges.MV(:,idx_elec(n,1)) == 1,idx_elec(n,1)).*data.fs);
+        pos = round(discharges.MP(clustering.class == 1 & idxMinPos == idx_elec(n) & discharges.MV(:,idx_elec(n)) == 1,idx_elec(n)).*data.fs);
         win = 100;
-        [x, ~, ~] = bst_bandpass_hfilter(d(:,idx_elec(n,1))',1024,6,0);
+        [x, ~, ~] = bst_bandpass_hfilter(d(:,idx_elec(n))',1024,6,0);
         for i = 1:size(pos,1)
             windowTemp= x(pos(i,1)-win:pos(i,1)+win)-mean(x);
             windowTemp = abs(windowTemp);
@@ -90,14 +94,12 @@ end
         end
         MAT_SPIKES{n,1} = window;
         VAL_SPIKES{n,1} = m;
-    end
-    %% Stat
-    for m = 1:nb_elec
-        StatSP.mean(m,1) = mean(VAL_SPIKES{n,1});
-        StatSP.sd(m,1) = std(VAL_SPIKES{n,1});
-        StatSP.max(m,1) = max(VAL_SPIKES{n,1});
-        StatSP.min(m,1) = min(VAL_SPIKES{n,1});
-        StatSP.elec = elec;
+        %% Stat
+        StatSP.mean(n,1) = mean(VAL_SPIKES{n,1});
+        StatSP.sd(n,1) = std(VAL_SPIKES{n,1});
+        StatSP.max(n,1) = max(VAL_SPIKES{n,1});
+        StatSP.min(n,1) = min(VAL_SPIKES{n,1});
+        StatSP.elec = replace(elec,'p',char(39));
     end
     close all
     save([FILEPATH filesep 'Results_Spikes_' NAME '.mat'],'StatSP','MAT_SPIKES','VAL_SPIKES')
