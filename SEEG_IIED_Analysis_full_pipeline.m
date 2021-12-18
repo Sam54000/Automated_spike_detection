@@ -74,7 +74,6 @@ end
         qEEG,...
     ] = MAIN_fun_standalone2(data,5,FILE);
 %% Extraction Raw Spikes' Values
-
     idx_elec = find(clustering.qAR(1,:) == 1);
     nb_elec = size(idx_elec,2);
     dat_irrit = d(:,idx_elec);
