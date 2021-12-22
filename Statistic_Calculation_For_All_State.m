@@ -32,6 +32,11 @@ for j = 1:size(s,2)
     
     Comparisons = ['BeforeVDuring','BeforeVPost','DuringVPost'];
     for i = 1:size(ComonElec,1)
+        
+        Val_Before(i,1) = Before.VAL_SPIKES(idxElecBefore(i),1);
+        Val_During(i,1) = During.VAL_SPIKES(idxElecDuring(i),1);
+        Val_Post(i,1) = Post.VAL_SPIKES(idxElecPost(i),1);
+        
         [p(i,1),h(i,1)] = ranksum(Before.VAL_SPIKES{idxElecBefore(i),1},During.VAL_SPIKES{idxElecDuring(i),1});
         [p(i,2),h(i,2)] = ranksum(Before.VAL_SPIKES{idxElecBefore(i),1},Post.VAL_SPIKES{idxElecPost(i),1});
         [p(i,3),h(i,3)] = ranksum(During.VAL_SPIKES{idxElecDuring(i),1},Post.VAL_SPIKES{idxElecPost(i),1});
@@ -60,6 +65,8 @@ for j = 1:size(s,2)
         minVal(i,2) = During.StatSP.min(idxElecDuring(i));
         minVal(i,3) = Post.StatSP.min(idxElecPost(i));
     end
-save([FILEPATH filesep 'Statistic_Comparison' PatName '.mat'],'PatName','ComonElec','Comparisons','p','h','nb_spike','meanVal','medVal','sdVal','maxVal','minVal')
+save([FILEPATH filesep 'Statistic_Comparison' PatName '.mat'],'PatName',...
+    'ComonElec','Comparisons','p','h','nb_spike','meanVal','medVal',...
+    'sdVal','maxVal','minVal','Val_Before','Val_During','Val_Post')
 end
     
